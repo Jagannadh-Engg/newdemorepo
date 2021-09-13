@@ -1,0 +1,84 @@
+--***************************************************************
+--*  Functions to get the employee information based on employee id
+--*  29.08.2021 Jagannadh FUNCTION CREATED
+--*                  Data Task# EX-2
+--***************************************************************
+CREATE OR REPLACE FUNCTION getEmployeeSalary(pEmpno emp.empid%TYPE) 
+	RETURN NUMBER IS  
+	vSalary number(2) := 0;  
+BEGIN  
+	SELECT e.salary into vSalary 
+	  FROM emp e 
+	 WHERE e.empid = pEmpno;  
+    RETURN vSalary; 
+EXCEPTION  
+	WHEN NO_DATA_FOUND THEN 
+	RETURN 0; 
+END;
+
+CREATE OR REPLACE FUNCTION getEmployeeJoinDate(pEmpno emp.empid%TYPE)
+	RETURN DATE IS 
+	vDOJ DATE; 
+BEGIN 
+	SELECT e.Join_Date into vDOJ 
+	  FROM emp e 
+	 WHERE e.empid = pEmpno; 
+    RETURN vDOJ;
+EXCEPTION 
+	WHEN NO_DATA_FOUND THEN
+	RETURN '';
+END;
+
+CREATE OR REPLACE FUNCTION getEmployeeLocation(pEmpno emp.empid%TYPE)
+	RETURN VARCHAR2 IS 
+	vLocation VARCHAR2; 
+BEGIN 
+	SELECT d.location_name into vLocation 
+	  FROM DEPT d 
+	 WHERE d.deptid = (SELECT e.deptid 
+	  FROM emp e 
+	 WHERE e.empid = pEmpno); 
+    RETURN vLocation;
+EXCEPTION 
+	WHEN NO_DATA_FOUND THEN
+	RETURN '';
+END;
+
+CREATE OR REPLACE FUNCTION getEmployeeName(pEmpno emp.empid%TYPE)
+	RETURN varchar2 IS 
+	vEmpName varchar2(30); 
+BEGIN 
+	SELECT e.emp_name into vEmpName 
+	  FROM emp e 
+	 WHERE e.EMPID=pEmpno; 
+    RETURN vEmpName;
+EXCEPTION 
+	WHEN NO_DATA_FOUND THEN
+	RETURN '';
+END;
+
+CREATE OR REPLACE PACKAGE EXERCISE                                                                              
+AS
+TYPE DAEmpdetRec IS RECORD(EMPNAME		emp.empname%type,
+						   SALARY		emp.salary%type,
+						   JOINDATE		emp.Join_date%type,
+						   LOCATION		dept.location_name%type);
+FUNCTION getEmployeedet(pEmpno emp.empid%TYPE) 
+	RETURN DAEmpdetRec;
+	
+create or replace PACKAGE BODY EXERCISE 
+AS
+FUNCTION getEmployeedet(pEmpno emp.empid%TYPE) 
+	RETURN DAEmpdetRec IS
+	DAEmpDetailsRec		DAEmpdetRec;
+	vEmpName			varchar2(30);
+BEGIN
+	SELECT e.emp_name into vEmpName 
+	  FROM emp e 
+	 WHERE e.empid = pEmpno;
+	DAEmpDetailsRec.EMPNAME := vEmpName;
+	DAEmpDetailsRec.SALARY := getEmployeeName(pEmpno);
+	DAEmpDetailsRec.JOINDATE := getEmployeeJoinDate(pEmpno);
+	DAEmpDetailsRec.LOCATION := getEmployeeLocation(pEmpno);
+	RETURN DAEmpDetailsRec;
+END;
